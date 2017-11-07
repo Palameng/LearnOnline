@@ -16,7 +16,6 @@ Including another URLconf
     3. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
 """
 from django.conf.urls import url, include
-from django.views.generic import TemplateView
 from django.views.static import serve
 from users.views import LoginView, RegisterView, ActiveUserView, ForgetView, ResetPasswordView, ModifyPasswordView, LogoutView, IndexView
 from Mxonline.settings import MEDIA_ROOT

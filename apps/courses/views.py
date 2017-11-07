@@ -3,7 +3,7 @@ from django.shortcuts import render
 from pure_pagination import Paginator, EmptyPage, PageNotAnInteger
 # Create your views here.
 from django.views.generic import View
-from .models import Course, CourseResource
+from .models import Course, CourseResource, Video
 from operation.models import UserFavorite, CourseComments, UserCourse
 from django.http import HttpResponse
 import json
@@ -157,3 +157,45 @@ class AddCommentsView(View):
             return HttpResponse(json.dumps(success_comment), content_type="application/json")
         else:
             return HttpResponse(json.dumps(fail_comment), content_type="application/json")
+
+
+class VideoPlayView(View):
+    """
+    视频播放页面
+    """
+    def get(self, request, video_id):
+        video = Video.objects.get(id=int(video_id))
+        course = video.lesson.course
+        course.students += 1
+        course.save()
+
+        user_courses_has_bind = UserCourse.objects.filter(user=request.user, course=course)
+        if not user_courses_has_bind:
+            user_course = UserCourse(user=request.user, course=course)
+            user_course.save()
+
+        # 学过该课程的同学还学过其他课程推荐功能
+
+        # UserCourse 定义为一条学生学习某个课程的数据，包含学生，课程
+        # 通过一门课程搜索出所有在该课程下学习的UserCourse信息
+        user_courses_filter_by_course = UserCourse.objects.filter(course=course)
+
+        # 利用python列表表达式获取所有这些学生的id
+        user_ids = [user_courses.user.id for user_courses in user_courses_filter_by_course]
+
+        # 再根据这些学生的id找到这部分学生学过的所有课程(通过列表过滤)
+        all_user_courses = UserCourse.objects.filter(user_id__in=user_ids)
+
+        # 利用python列表表达式获取所有这些课程的id
+        course_ids = [user_courses.course.id for user_courses in all_user_courses]
+
+        # 最后根据这些课程id找到这部分课程实例集合
+        relate_courses = Course.objects.filter(id__in=course_ids).order_by("-click_nums")[:5]
+
+        all_resource = CourseResource.objects.filter(course=course)
+        return render(request, 'course-play.html', {
+            "course": course,
+            "all_resource": all_resource,
+            "relate_courses": relate_courses,
+            "video": video,
+        })
