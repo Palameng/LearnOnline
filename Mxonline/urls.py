@@ -17,7 +17,7 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.views.static import serve
-from users.views import LoginView, RegisterView, ActiveUserView, ForgetView, ResetPasswordView, ModifyPasswordView, LogoutView, IndexView
+from users.views import LoginView, RegisterView, ActiveUserView, ForgetView, ResetPasswordView, ModifyPasswordView, LogoutView, IndexView, LoginUnsafeView
 from Mxonline.settings import MEDIA_ROOT
 import xadmin
 
@@ -25,7 +25,8 @@ import xadmin
 urlpatterns = [
     url(r'^xadmin/', xadmin.site.urls),
     url('^$', IndexView.as_view(), name="index"),
-    url('^login/$', LoginView.as_view(), name="login"),
+    # url('^login/$', LoginView.as_view(), name="login"),
+    url('^login/$', LoginUnsafeView.as_view(), name="login"),
     url('^logout/$', LogoutView.as_view(), name="logout"),
     url('^register/$', RegisterView.as_view(), name="register"),
     url(r'^captcha/', include('captcha.urls')),
